@@ -1,13 +1,18 @@
 const express = require('express');
+const postsRouter = require('./posts/postRouter');
 
 const server = express();
 
+//global middleware section
+server.use(express.json());
+server.use('/posts', postsRouter);
+
 server.get('/', (req, res) => {
-  res.send(`<h2>Let's write some middleware!</h2>`);
+  res.send('hello world!');
 });
 
-//custom middleware
-
-function logger(req, res, next) {}
+// server.get('/now', (req, res) => {
+//   res.send(`response on now path ${new Date().toISOString()}`);
+// });
 
 module.exports = server;
