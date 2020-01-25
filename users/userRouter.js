@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('./userDb');
 const router = express.Router();
 
-router.post('/', (req, res) => {
+router.post('/', validateUser('name'), (req, res) => {
   db.insert(req.body)
     .then(post => {
       res.status(201).json(post);
@@ -34,7 +34,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
   db.getById(req.params.id)
     .then(post => {
       res.status(200).json(post);
@@ -93,15 +93,35 @@ router.put('/:id', (req, res) => {
 //custom middleware
 
 function validateUserId(req, res, next) {
-  // do your magic!
+  const { id } = req.params;
+  db.getById(id)
+    .then(user => {
+      if (user) {
+        req.user = user;
+        req.id = id;
+        next();
+      } else {
+        res.status(400).json({ success: false, message: 'invalid user id' });
+      }
+    })
+    .catch(err => {
+      console.log('validateUserId error: ', err);
+      res.status(500).json({ success: false, message: 'Error', err });
+    });
 }
 
-function validateUser(req, res, next) {
-  // do your magic!
-}
-
-function validatePost(req, res, next) {
-  // do your magic!
+function validateUser(prop) {
+  return function(req, res, next) {
+    if (!req.body) {
+      res.status(400).json({ success: false, message: 'missing user data' });
+    } else if (req.body[prop]) {
+      next();
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: 'missing required name' });
+    }
+  };
 }
 
 module.exports = router;

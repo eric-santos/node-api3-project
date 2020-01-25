@@ -58,6 +58,12 @@ router.put('/:id', (req, res) => {
     });
 });
 
+const checkFor = prop => (req, res, next) => {
+  req.body[prop]
+    ? next()
+    : res.status(400).json({ errorMessage: `missing required text field` });
+};
+
 router.post('/', (req, res) => {
   console.log('succesfully posted');
   db.insert(req.body)
@@ -71,6 +77,20 @@ router.post('/', (req, res) => {
 });
 
 // custom middleware
+
+function validatePost(prop) {
+  return function(req, res, next) {
+    if (!req.body) {
+      res.status(400).json({ success: false, message: 'missing post data' });
+    } else if (req.body[prop]) {
+      next();
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: 'missing required text field' });
+    }
+  };
+}
 
 function validatePostId(req, res, next) {
   // do your magic!
