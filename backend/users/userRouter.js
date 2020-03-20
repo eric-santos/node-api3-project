@@ -23,7 +23,7 @@ router.get("/:id", validateUserId, (req, res) => {
     });
 });
 
-router.get("/:id/posts", (req, res) => {
+router.get("/:id/posts", validateUserId, (req, res) => {
   db.getUserPosts(req.params.id)
     .then(posts => {
       if (posts.length > 0) {
@@ -38,7 +38,7 @@ router.get("/:id/posts", (req, res) => {
 });
 
 //validateUser middleware
-router.post("/", validateUser("name"), (req, res) => {
+router.post("/", validateUser, (req, res) => {
   db.insert(req.body)
     .then(post => {
       res.status(201).json(post);
@@ -51,7 +51,21 @@ router.post("/", validateUser("name"), (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.post("/:id/posts", validateUserId, (req, res) => {
+  const id = req.params.id;
+  const posts = req.body;
+
+  db.insert(id, posts)
+    .then(post => {
+      res.status(201).json(post);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ message: "Error adding User's post" });
+    });
+});
+
+router.put("/:id", validateUserId, (req, res) => {
   const { id } = req.params;
   const posts = req.body;
 
@@ -68,7 +82,7 @@ router.put("/:id", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateUserId, (req, res) => {
   const { id } = req.params;
   db.remove(id)
     .then(deleted => {
@@ -103,18 +117,14 @@ function validateUserId(req, res, next) {
     });
 }
 
-function validateUser(prop) {
-  return function(req, res, next) {
-    if (!req.body) {
-      res.status(400).json({ success: false, message: "missing user data" });
-    } else if (req.body[prop]) {
-      next();
-    } else {
-      res
-        .status(400)
-        .json({ success: false, message: "missing required name" });
-    }
-  };
+function validateUser(req, res, next) {
+  if (!req.body) {
+    res.status(400).json({ success: false, message: "missing user data" });
+  } else if (req.body.name) {
+    next();
+  } else {
+    res.status(400).json({ success: false, message: "missing required name" });
+  }
 }
 
 module.exports = router;

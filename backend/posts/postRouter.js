@@ -23,7 +23,7 @@ router.get("/:id", (req, res) => {
     });
 });
 
-router.post("/", validatePost("text"), (req, res) => {
+router.post("/", validatePost, (req, res) => {
   db.insert(req.body)
     .then(post => {
       res.status(201).json(post);
@@ -36,7 +36,7 @@ router.post("/", validatePost("text"), (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", validatePost, (req, res) => {
   const { id } = req.params;
   const posts = req.body;
 
@@ -78,18 +78,16 @@ router.delete("/:id", (req, res) => {
 // };
 
 // custom middleware
-function validatePost(prop) {
-  return function(req, res, next) {
-    if (!req.body) {
-      res.status(400).json({ success: false, message: "missing post data" });
-    } else if (req.body[prop]) {
-      next();
-    } else {
-      res
-        .status(400)
-        .json({ success: false, message: "missing required text field" });
-    }
-  };
+function validatePost(req, res, next) {
+  if (!req.body) {
+    res.status(400).json({ success: false, message: "missing post data" });
+  } else if (req.body.text) {
+    next();
+  } else {
+    res
+      .status(400)
+      .json({ success: false, message: "missing required text field" });
+  }
 }
 
 module.exports = router;

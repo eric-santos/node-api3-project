@@ -13,7 +13,8 @@ server.use("/posts", postsRouter);
 server.use("/users", userRouter);
 
 server.get("/", (req, res) => {
-  res.send("hello world!");
+  const messageOfTheDay = process.env.MOTD || "Hello WOrld";
+  require.status(200).json({ message: messageOfTheDay });
 });
 
 function logger(req, res, next) {
