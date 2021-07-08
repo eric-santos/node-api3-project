@@ -1,13 +1,26 @@
-const express = require('express');
+const express = require("express");
+const postsRouter = require("./posts/postRouter");
+const userRouter = require("./users/userRouter");
+const cors = require("cors");
 
 const server = express();
 
-server.get('/', (req, res) => {
-  res.send(`<h2>Let's write some middleware!</h2>`);
+//global middleware section
+server.use(express.json());
+server.use(cors());
+server.use(logger);
+server.use("/posts", postsRouter);
+server.use("/users", userRouter);
+
+server.get("/", (req, res) => {
+  const messageOfTheDay = process.env.MOTD || "Hello WOrld";
+  require.status(200).json({ message: messageOfTheDay });
 });
 
-//custom middleware
-
-function logger(req, res, next) {}
+function logger(req, res, next) {
+  const { method, originalUrl } = req;
+  console.log(`${method} to ${originalUrl}`);
+  next();
+}
 
 module.exports = server;
